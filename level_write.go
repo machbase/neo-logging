@@ -6,8 +6,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/machbase/booter"
 )
 
 func (l *levelLogger) _log(lvl Level, callstackOffset int, args []any) {
@@ -54,14 +52,9 @@ func (l *levelLogger) _logf(lvl Level, callstackOffset int, format string, args 
 
 	if l.logVaulter != nil {
 		var line string
-		pname := booter.Pname()
-		if len(pname) == 0 {
-			pname = "-"
-		}
-		prefix := fmt.Sprintf("%v %s%-5s%s %s %s",
+		prefix := fmt.Sprintf("%v %s%-5s%s %s",
 			timestamp.Format("2006/01/02 15:04:05.000"),
 			levelColorBegin, logLevelNames[lvl], levelColorEnd,
-			pname,
 			name)
 		if format == "" {
 			toks := make([]string, len(args)+1)
@@ -79,13 +72,7 @@ func (l *levelLogger) _logf(lvl Level, callstackOffset int, format string, args 
 		l.logVaulter.Write(timestamp, line)
 	}
 
-	pname := booter.Pname()
-	levelWithPname := ""
-	if len(pname) > 0 {
-		levelWithPname = fmt.Sprintf("%-5s %s", logLevelNames[lvl], pname)
-	} else {
-		levelWithPname = fmt.Sprintf("%-5s", logLevelNames[lvl])
-	}
+	levelWithPname := fmt.Sprintf("%-5s", logLevelNames[lvl])
 
 	for _, w := range l.underlying {
 		var fnew string
