@@ -10,16 +10,10 @@ type Module struct {
 }
 
 func (m *Module) Start() error {
-	if defaultLogValuter != nil {
-		defaultLogValuter.Start()
-	}
 	return nil
 }
 
 func (m *Module) Stop() {
-	if defaultLogValuter != nil {
-		defaultLogValuter.Stop()
-	}
 }
 
 func init() {

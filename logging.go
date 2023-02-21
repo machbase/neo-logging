@@ -24,20 +24,19 @@ import (
 */
 
 type Config struct {
-	Console                     bool            `json:"console" default:"true" help:"enable console output"`
-	LogServer                   LogServerConfig `json:"logServer"`
-	Filename                    string          `json:"filename" placeholder:"<path>" help:"log file path"`
-	Append                      bool            `json:"append" help:"append to existing log file"`
-	RotateSchedule              string          `json:"rotateSchedule" help:"schedule to roate log file"`
-	MaxSize                     int             `json:"maxSize" help:"log file max size in MB"`
-	MaxBackups                  int             `json:"maxBackups" help:"number of backup files"`
-	MaxAge                      int             `json:"maxAge" help:"how many days keep backup files"`
-	Compress                    bool            `json:"compress" placeholder:"true|false" default:"false" help:"compress backup files"`
-	Levels                      []LevelConfig   `json:"levels" hidden:""`
-	UTC                         bool            `json:"utc" help:"log time format in UTC"`
-	DefaultPrefixWidth          int             `json:"defaultPrefixWidth" default:"20" hidden:""`
-	DefaultEnableSourceLocation bool            `json:"defaultEnableSourceLocation" default:"false" hidden:""`
-	DefaultLevel                string          `json:"defaultLevel"  enum:"TRACE,DEBUG,INFO,WARN,ERROR" default:"INFO" help:"TRACE,DEBUG,INFO,WARN,ERROR"`
+	Console                     bool          `json:"console" default:"true" help:"enable console output"`
+	Filename                    string        `json:"filename" placeholder:"<path>" help:"log file path"`
+	Append                      bool          `json:"append" help:"append to existing log file"`
+	RotateSchedule              string        `json:"rotateSchedule" help:"schedule to roate log file"`
+	MaxSize                     int           `json:"maxSize" help:"log file max size in MB"`
+	MaxBackups                  int           `json:"maxBackups" help:"number of backup files"`
+	MaxAge                      int           `json:"maxAge" help:"how many days keep backup files"`
+	Compress                    bool          `json:"compress" placeholder:"true|false" default:"false" help:"compress backup files"`
+	Levels                      []LevelConfig `json:"levels" hidden:""`
+	UTC                         bool          `json:"utc" help:"log time format in UTC"`
+	DefaultPrefixWidth          int           `json:"defaultPrefixWidth" default:"20" hidden:""`
+	DefaultEnableSourceLocation bool          `json:"defaultEnableSourceLocation" default:"false" hidden:""`
+	DefaultLevel                string        `json:"defaultLevel"  enum:"TRACE,DEBUG,INFO,WARN,ERROR" default:"INFO" help:"TRACE,DEBUG,INFO,WARN,ERROR"`
 }
 
 type LogServerConfig struct {
@@ -72,7 +71,6 @@ var PresetConfigDiscard = Config{
 var rotateCron = cron.New()
 
 var defaultWriter []*logWriter
-var defaultLogValuter *LogVaultWriter
 
 func Configure(cfg *Config) {
 	for _, c := range cfg.Levels {
@@ -118,10 +116,6 @@ func Configure(cfg *Config) {
 			defaultWriter = []*logWriter{{Writer: lj, isTerm: false}}
 		}
 	}
-
-	if len(cfg.LogServer.Address) > 0 {
-		defaultLogValuter = NewLogVaultWriter(cfg.LogServer.Address, cfg.LogServer.Labels)
-	}
 }
 
 func GetLog(name string) Log {
@@ -129,7 +123,6 @@ func GetLog(name string) Log {
 		name:         name,
 		level:        GetLevel(name),
 		underlying:   defaultWriter,
-		logVaulter:   defaultLogValuter,
 		prefixWidth:  prefixWidthDefault,
 		enableSrcLoc: enableSourceLocationDefault,
 	}
@@ -140,7 +133,6 @@ func NewLog(name string, writer io.Writer) Log {
 		name:         name,
 		level:        GetLevel(name),
 		underlying:   []*logWriter{{Writer: writer, isTerm: false}},
-		logVaulter:   defaultLogValuter,
 		prefixWidth:  prefixWidthDefault,
 		enableSrcLoc: enableSourceLocationDefault,
 	}
@@ -163,7 +155,6 @@ type LogFileConf struct {
 
 func NewLogFile(name string, cfg LogFileConf) Log {
 	var underlying []*logWriter
-	var logValuter *LogVaultWriter
 	level := ParseLogLevel(cfg.Level)
 
 	if len(cfg.Filename) == 0 || cfg.Filename == "." {
@@ -199,18 +190,12 @@ func NewLogFile(name string, cfg LogFileConf) Log {
 		}
 	}
 
-	if len(cfg.LogServer.Address) > 0 {
-		logValuter = NewLogVaultWriter(cfg.LogServer.Address, cfg.LogServer.Labels)
-		logValuter.Start()
-	}
-
 	return &levelLogger{
 		name:         name,
 		level:        level,
 		underlying:   underlying,
 		prefixWidth:  cfg.PrefixWidth,
 		enableSrcLoc: cfg.EnableSourceLocation,
-		logVaulter:   logValuter,
 	}
 }
 

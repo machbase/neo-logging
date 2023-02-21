@@ -122,7 +122,6 @@ type levelLogger struct {
 	name         string
 	level        Level
 	underlying   []*logWriter
-	logVaulter   *LogVaultWriter
 	prefixWidth  int
 	enableSrcLoc bool
 }

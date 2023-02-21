@@ -50,28 +50,6 @@ func (l *levelLogger) _logf(lvl Level, callstackOffset int, format string, args 
 
 	timestamp := time.Now()
 
-	if l.logVaulter != nil {
-		var line string
-		prefix := fmt.Sprintf("%v %s%-5s%s %s",
-			timestamp.Format("2006/01/02 15:04:05.000"),
-			levelColorBegin, logLevelNames[lvl], levelColorEnd,
-			name)
-		if format == "" {
-			toks := make([]string, len(args)+1)
-			for i, a := range args {
-				if s, ok := a.(string); ok {
-					toks[i] = s
-				} else {
-					toks[i] = fmt.Sprintf("%v", a)
-				}
-			}
-			line = prefix + " " + strings.Join(toks, " ")
-		} else {
-			line = prefix + " " + fmt.Sprintf(format, args...)
-		}
-		l.logVaulter.Write(timestamp, line)
-	}
-
 	levelWithPname := fmt.Sprintf("%-5s", logLevelNames[lvl])
 
 	for _, w := range l.underlying {
